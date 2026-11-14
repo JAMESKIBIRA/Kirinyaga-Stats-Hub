@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
-import time
 
 # 1. Page Configuration
 st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="wide")
@@ -12,10 +11,8 @@ DB_FILE = 'stats_hub.db'
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    # Existing tables
     c.execute('''CREATE TABLE IF NOT EXISTS notices (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS resources (id INTEGER PRIMARY KEY AUTOINCREMENT, unit_code TEXT, title TEXT, file_name TEXT)''')
-    # NEW tables for the Forum
     c.execute('''CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, question TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
@@ -28,10 +25,9 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row 
     return conn
 
-# 3. Sidebar Navigation
+# 3. Sidebar Navigation (Live Chat removed)
 st.sidebar.title("Navigation")
-# Added the two new pages here!
-page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum", "Live Chat"])
+page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum"])
 
 # --- HOME PAGE ---
 if page == "Home":
@@ -113,12 +109,11 @@ elif page == "Resource Vault":
         df_resources = pd.DataFrame([dict(r) for r in resources])
         st.dataframe(df_resources, width="stretch")
 
-# --- CLASS FORUM PAGE (NEW) ---
+# --- CLASS FORUM PAGE ---
 elif page == "Class Forum":
     st.title("💬 Class Q&A Forum")
     st.write("Ask questions about assignments, CATs, or anything stats-related!")
     
-    # Form to ask a question
     with st.form("ask_form", clear_on_submit=True):
         name = st.text_input("Your Name (or nickname):")
         question = st.text_area("Your Question:")
@@ -136,7 +131,6 @@ elif page == "Class Forum":
     st.subheader("Recent Questions")
     
     conn = get_db_connection()
-    # Get all questions
     questions = conn.execute('SELECT id, name, question, date FROM questions ORDER BY id DESC').fetchall()
     
     if len(questions) == 0:
@@ -147,13 +141,11 @@ elif page == "Class Forum":
                 st.markdown(f"**{q['name']}** asked: *{q['question']}*")
                 st.caption(f"Posted on {q['date']}")
                 
-                # Get replies for this specific question
                 replies = conn.execute('SELECT reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
                 if replies:
                     for r in replies:
                         st.markdown(f"↳ 💬 {r['reply']}")
                 
-                # Form to reply
                 with st.form(f"reply_form_{q['id']}"):
                     reply_text = st.text_input("Write a reply...", key=f"reply_{q['id']}")
                     submit_reply = st.form_submit_button("Reply")
@@ -163,31 +155,3 @@ elif page == "Class Forum":
                         st.rerun()
                 st.divider()
     conn.close()
-
-# --- LIVE CHAT PAGE (NEW) ---
-elif page == "Live Chat":
-    st.title("⚡ Live Chat Room")
-    st.write("Chat with classmates in real-time. (Note: Messages clear when you refresh).")
-    
-    # Initialize chat history in Streamlit session state
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display chat messages from history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Accept user input
-    if prompt := st.chat_input("Type your message here..."):
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        # Display user message in chat message container
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        
-        # Echo reply to simulate live chat
-        response = f"Echo: {prompt}"
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        with st.chat_message("assistant"):
-            st.markdown(response)
