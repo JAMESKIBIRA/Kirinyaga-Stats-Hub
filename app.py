@@ -28,16 +28,13 @@ def get_db_connection():
 # 3. Admin Login Setup (In Sidebar)
 st.sidebar.title("Navigation")
 
-# Check if the user is logged in
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-# Admin Login form in the sidebar
 if not st.session_state.is_admin:
     with st.sidebar.expander("🔐 Admin Login"):
         password = st.text_input("Enter Admin Password", type="password")
         if st.button("Login"):
-            # Check against the secret password in Streamlit Secrets
             if password == st.secrets.get("ADMIN_PASSWORD", "JamesAdmin2024"):
                 st.session_state.is_admin = True
                 st.success("Logged in as Admin!")
@@ -50,11 +47,9 @@ else:
         st.session_state.is_admin = False
         st.rerun()
 
-# Menu Navigation
 page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum", "Live Chat"])
 
-is_admin = st.session_state.is_admin # Shortcut variable to make code cleaner
-
+is_admin = st.session_state.is_admin 
 
 # --- HOME PAGE ---
 if page == "Home":
@@ -63,18 +58,25 @@ if page == "Home":
     st.write("Use the sidebar to check your timetable, read notices, access past papers, and stay updated.")
     st.info("Built by James Kiruma using Python and Streamlit.")
 
-# --- TIMETABLE PAGE ---
+# --- TIMETABLE PAGE (UPDATED) ---
 elif page == "Timetable":
     st.title("🗓️ Class Timetable")
-    st.write("Here is the schedule for this semester.")
+    st.write("**Bachelor of Science in Statistics (Year 2, Semester 1) | August - December 2026/2027**")
+    
+    # Your real timetable data
     timetable_data = {
-        "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "8:00 AM - 10:00 AM": ["Calculus III", "Probability II", "Epidemiology", "Linear Algebra II", "Calculus III"],
-        "10:00 AM - 12:00 PM": ["Linear Algebra II", "Calculus III", "Probability II", "Epidemiology", "Stats Computing"],
-        "2:00 PM - 4:00 PM": ["Epidemiology", "Stats Computing", "Calculus III", "Probability II", "Linear Algebra II"]
+        "Day": ["Monday", "Tuesday", "Tuesday", "Wednesday", "Wednesday", "Thursday", "Friday"],
+        "Time": ["7:00 AM - 10:00 AM", "10:00 AM - 1:00 PM", "1:00 PM - 4:00 PM", "10:00 AM - 1:00 PM", "4:00 PM - 7:00 PM", "NO LECTURES", "10:00 AM - 1:00 PM"],
+        "Unit Code": ["STA 2243", "STA 2301", "STA 2321", "STA 2344", "STA 2342", "N/A", "STA 2240"],
+        "Unit Name": ["Fundamentals of Computer Interactive Statistics", "Numerical Analysis I", "Introduction to Biostatistics", "Calculus for Statistics III", "Probability and Statistics II", "N/A", "Probability and Statistics II"],
+        "Venue": ["LAB 1", "SM 105", "SM 001", "LAB", "SM 001", "N/A", "SM 101"],
+        "Lecturer": ["Dr. Mwaura", "Dr. Kinyua", "Mr. Muriuki", "Mwalimu (C.N.)", "Prof. N. C. N.", "N/A", "Lucas"]
     }
+    
     df = pd.DataFrame(timetable_data)
-    st.dataframe(df, width="stretch")
+    
+    # Display as a clean, wide table
+    st.dataframe(df, width="stretch", hide_index=True)
 
 # --- NOTICE BOARD PAGE ---
 elif page == "Notice Board":
@@ -93,7 +95,6 @@ elif page == "Notice Board":
 
     st.divider()
     
-    # Only show if Admin
     if is_admin:
         if st.button("🗑️ Clear All Notices"):
             conn = get_db_connection()
