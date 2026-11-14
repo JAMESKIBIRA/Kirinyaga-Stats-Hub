@@ -58,19 +58,19 @@ if page == "Home":
     st.write("Use the sidebar to check your timetable, read notices, access past papers, and stay updated.")
     st.info("Built by James Kiruma using Python and Streamlit.")
 
-# --- TIMETABLE PAGE (UPDATED) ---
+# --- TIMETABLE PAGE (FULLY CORRECTED) ---
 elif page == "Timetable":
     st.title("🗓️ Class Timetable")
     st.write("**Bachelor of Science in Statistics (Year 2, Semester 1) | August - December 2026/2027**")
     
-    # Your real timetable data
+    # Corrected timetable data
     timetable_data = {
         "Day": ["Monday", "Tuesday", "Tuesday", "Wednesday", "Wednesday", "Thursday", "Friday"],
-        "Time": ["7:00 AM - 10:00 AM", "10:00 AM - 1:00 PM", "1:00 PM - 4:00 PM", "10:00 AM - 1:00 PM", "4:00 PM - 7:00 PM", "NO LECTURES", "10:00 AM - 1:00 PM"],
-        "Unit Code": ["STA 2243", "STA 2301", "STA 2321", "STA 2344", "STA 2342", "N/A", "STA 2240"],
-        "Unit Name": ["Fundamentals of Computer Interactive Statistics", "Numerical Analysis I", "Introduction to Biostatistics", "Calculus for Statistics III", "Probability and Statistics II", "N/A", "Probability and Statistics II"],
-        "Venue": ["LAB 1", "SM 105", "SM 001", "LAB", "SM 001", "N/A", "SM 101"],
-        "Lecturer": ["Dr. Mwaura", "Dr. Kinyua", "Mr. Muriuki", "Mwalimu (C.N.)", "Prof. N. C. N.", "N/A", "Lucas"]
+        "Time": ["NO LECTURES", "10:00 AM - 1:00 PM", "1:00 PM - 4:00 PM", "10:00 AM - 1:00 PM", "4:00 PM - 7:00 PM", "NO LECTURES", "10:00 AM - 1:00 PM"],
+        "Unit Code": ["N/A", "STA 2301", "STA 2321", "STA 2344", "STA 2342", "N/A", "STA 2240"],
+        "Unit Name": ["N/A", "Numerical Analysis I", "Introduction to Biostatistics", "Calculus for Statistics III", "Probability and Statistics II", "N/A", "Probability and Statistics II"],
+        "Venue": ["N/A", "SM 105", "SM 001", "LAB", "SM 001", "N/A", "SM 101"],
+        "Lecturer": ["N/A", "Dr. Kinyua", "Mr. Muriuki", "Mwalimu (C.N.)", "Prof. N. C. N.", "N/A", "Lucas"]
     }
     
     df = pd.DataFrame(timetable_data)
