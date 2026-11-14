@@ -25,9 +25,9 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row 
     return conn
 
-# 3. Sidebar Navigation (Live Chat removed)
+# 3. Sidebar Navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum"])
+page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum", "Live Chat"])
 
 # --- HOME PAGE ---
 if page == "Home":
@@ -155,3 +155,32 @@ elif page == "Class Forum":
                         st.rerun()
                 st.divider()
     conn.close()
+
+# --- LIVE CHAT PAGE ---
+elif page == "Live Chat":
+    st.title("⚡ Live Chat Room")
+    st.write("Chat with classmates in real-time.")
+    
+    # NEW: Button to clear the chat messages
+    if st.button("🗑️ Clear Chat History", type="primary"):
+        st.session_state.messages = []
+        st.rerun()
+        
+    st.divider()
+    
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Type your message here..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        response = f"Echo: {prompt}"
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant"):
+            st.markdown(response)
