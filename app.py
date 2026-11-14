@@ -63,14 +63,14 @@ elif page == "Timetable":
     st.title("🗓️ Class Timetable")
     st.write("**Bachelor of Science in Statistics | Stage: Y2.S1 (August - December 2026/2027)**")
     
-    # The exact data from your summary
+    # The exact data from your summary (with corrections)
     timetable_data = {
         "Day": ["Monday", "Tuesday", "Tuesday", "Wednesday", "Wednesday", "Wednesday", "Thursday", "Friday"],
         "Time": ["NO LECTURES", "7:00am - 10:00am", "10:00am - 1:00pm", "10:00am - 1:00pm", "1:00pm - 4:00pm", "4:00pm - 7:00pm", "NO LECTURES", "10:00am - 1:00pm"],
         "Unit Code": ["-", "STA 2243", "SPM 2302", "SPM 2321", "STA 2344", "STA 2342", "-", "STA 2240"],
         "Unit Name": ["-", "Fundamentals of Computer Interactive Statistics", "Linear Algebra II", "Numerical Analysis I", "Introduction to Epidemiological Methods", "Calculus for Statistics III", "-", "Probability and Statistics II"],
-        "Venue": ["-", "LAB 1", "JSM 105", "JSM 001", "LAB", "-", "-", "JSM 101"],
-        "Lecturer": ["-", "Dr. Mutua", "Dr. Kayiita", "Mr. Muchondou", "Carol", "Dr. Moffat C.N.", "-", "Lucas"]
+        "Venue": ["-", "LAB 1", "JSM 105", "JSM 001", "LH 19", "-", "-", "JSM 101"],
+        "Lecturer": ["-", "Dr. Mutua", "Dr. Kayiita", "Mr. Muthondu", "Carol", "Dr. Moffat C.N.", "-", "Lucas"]
     }
     
     df = pd.DataFrame(timetable_data)
