@@ -70,7 +70,7 @@ elif page == "Timetable":
         "Unit Code": ["-", "STA 2243", "SPM 2302", "SPM 2321", "STA 2344", "STA 2342", "-", "STA 2240"],
         "Unit Name": ["-", "Fundamentals of Computer Interactive Statistics", "Linear Algebra II", "Numerical Analysis I", "Introduction to Epidemiological Methods", "Calculus for Statistics III", "-", "Probability and Statistics II"],
         "Venue": ["-", "LAB 1", "JSM 105", "JSM 001", "LH 19", "-", "-", "JSM 101"],
-        "Lecturer": ["-", "Dr. Mutua", "Dr. Kayiita", "Mr. Muthondu", "Carol", "Dr. Moffat C.N.", "-", "Lucas"]
+        "Lecturer": ["-", "Dr. Mutua", "Dr. Kayiita", "Muthondu", "Carol", "Dr. Moffat C.N.", "-", "Lucas"]
     }
     
     df = pd.DataFrame(timetable_data)
