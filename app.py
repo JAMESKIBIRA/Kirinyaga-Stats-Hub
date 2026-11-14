@@ -58,17 +58,17 @@ if page == "Home":
     st.write("Use the sidebar to check your timetable, read notices, access past papers, and stay updated.")
     st.info("Built by James Kiruma using Python and Streamlit.")
 
-# --- TIMETABLE PAGE (FULLY CORRECTED) ---
+# --- TIMETABLE PAGE ---
 elif page == "Timetable":
     st.title("🗓️ Class Timetable")
     st.write("**Bachelor of Science in Statistics | Stage: Y2.S1 (August - December 2026/2027)**")
     
-    # The exact data from your notebook
+    # The exact data from your summary
     timetable_data = {
         "Day": ["Monday", "Tuesday", "Tuesday", "Wednesday", "Wednesday", "Wednesday", "Thursday", "Friday"],
         "Time": ["NO LECTURES", "7:00am - 10:00am", "10:00am - 1:00pm", "10:00am - 1:00pm", "1:00pm - 4:00pm", "4:00pm - 7:00pm", "NO LECTURES", "10:00am - 1:00pm"],
         "Unit Code": ["-", "STA 2243", "SPM 2302", "SPM 2321", "STA 2344", "STA 2342", "-", "STA 2240"],
-        "Unit Name": ["-", "FUNDAMENTALS OF COMPUTER INTERACTIVE STATISTICS", "NUMERICAL ANALYSIS I", "INTRODUCTION TO EPIDEMIOLOGICAL METHODS", "CALCULUS FOR STATISTICS III", "-", "-", "PROBABILITY AND STATISTICS II"],
+        "Unit Name": ["-", "Fundamentals of Computer Interactive Statistics", "Linear Algebra II", "Numerical Analysis I", "Introduction to Epidemiological Methods", "Calculus for Statistics III", "-", "Probability and Statistics II"],
         "Venue": ["-", "LAB 1", "JSM 105", "JSM 001", "LAB", "-", "-", "JSM 101"],
         "Lecturer": ["-", "Dr. Mutua", "Dr. Kayiita", "Mr. Muchondou", "Carol", "Dr. Moffat C.N.", "-", "Lucas"]
     }
@@ -77,3 +77,207 @@ elif page == "Timetable":
     
     # Display as a clean table
     st.dataframe(df, width="stretch", hide_index=True)
+
+# --- NOTICE BOARD PAGE ---
+elif page == "Notice Board":
+    st.title("📌 Notice Board")
+    
+    with st.form("notice_form", clear_on_submit=True):
+        new_notice = st.text_area("Type a new notice for the class:")
+        submitted = st.form_submit_button("Post Notice")
+        if submitted and new_notice:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO notices (message) VALUES (?)', (new_notice,))
+            conn.commit()
+            conn.close()
+            st.success("Notice posted successfully!")
+            st.rerun()
+
+    st.divider()
+    
+    if is_admin:
+        if st.button("🗑️ Clear All Notices"):
+            conn = get_db_connection()
+            conn.execute('DELETE FROM notices')
+            conn.commit()
+            conn.close()
+            st.success("All notices cleared!")
+            st.rerun()
+
+    st.subheader("Latest Updates")
+    conn = get_db_connection()
+    notices = conn.execute('SELECT id, message FROM notices ORDER BY id DESC').fetchall()
+    conn.close()
+    
+    if len(notices) == 0:
+        st.info("No notices posted yet. Be the first!")
+    else:
+        for notice in notices:
+            if is_admin:
+                col1, col2 = st.columns([5, 1])
+                with col1:
+                    st.success(notice['message'])
+                with col2:
+                    if st.button("🗑️", key=f"del_notice_{notice['id']}"):
+                        conn = get_db_connection()
+                        conn.execute('DELETE FROM notices WHERE id = ?', (notice['id'],))
+                        conn.commit()
+                        conn.close()
+                        st.rerun()
+            else:
+                st.success(notice['message'])
+
+# --- RESOURCE VAULT PAGE ---
+elif page == "Resource Vault":
+    st.title("📚 Resource Vault")
+    st.write("Add past papers or notes to the database.")
+    
+    with st.form("upload_form", clear_on_submit=True):
+        unit_code = st.text_input("Unit Code (e.g., STA 2101)")
+        title = st.text_input("Resource Title (e.g., CAT 1 Past Paper)")
+        uploaded_file = st.file_uploader("Upload file (PDF, DOCX)", type=["pdf", "docx"])
+        submit_resource = st.form_submit_button("Save to Vault")
+        
+        if submit_resource and unit_code and title and uploaded_file:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO resources (unit_code, title, file_name) VALUES (?, ?, ?)', 
+                         (unit_code, title, uploaded_file.name))
+            conn.commit()
+            conn.close()
+            st.success(f"Saved {title} to database!")
+            st.rerun()
+    
+    st.divider()
+    
+    if is_admin:
+        if st.button("🗑️ Clear All Resources"):
+            conn = get_db_connection()
+            conn.execute('DELETE FROM resources')
+            conn.commit()
+            conn.close()
+            st.success("All resources cleared!")
+            st.rerun()
+
+    st.subheader("Available Resources")
+    conn = get_db_connection()
+    resources = conn.execute('SELECT id, unit_code, title, file_name FROM resources ORDER BY id DESC').fetchall()
+    
+    if len(resources) == 0:
+        st.info("No resources added yet.")
+    else:
+        for r in resources:
+            if is_admin:
+                col1, col2, col3 = st.columns([2, 4, 1])
+                with col1:
+                    st.write(f"**{r['unit_code']}**")
+                with col2:
+                    st.write(f"{r['title']} ({r['file_name']})")
+                with col3:
+                    if st.button("🗑️", key=f"del_res_{r['id']}"):
+                        conn.execute('DELETE FROM resources WHERE id = ?', (r['id'],))
+                        conn.commit()
+                        conn.close()
+                        st.rerun()
+            else:
+                st.write(f"**{r['unit_code']}** - {r['title']} ({r['file_name']})")
+    conn.close()
+
+# --- CLASS FORUM PAGE ---
+elif page == "Class Forum":
+    st.title("💬 Class Q&A Forum")
+    st.write("Ask questions about assignments, CATs, or anything stats-related!")
+    
+    if is_admin:
+        if st.button("🗑️ Clear All Forum Questions"):
+            conn = get_db_connection()
+            conn.execute('DELETE FROM questions')
+            conn.execute('DELETE FROM replies')
+            conn.commit()
+            conn.close()
+            st.success("All questions cleared!")
+            st.rerun()
+
+    st.divider()
+
+    with st.form("ask_form", clear_on_submit=True):
+        name = st.text_input("Your Name (or nickname):")
+        question = st.text_area("Your Question:")
+        submit_q = st.form_submit_button("Post Question")
+        
+        if submit_q and name and question:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO questions (name, question) VALUES (?, ?)', (name, question))
+            conn.commit()
+            conn.close()
+            st.success("Question posted!")
+            st.rerun()
+            
+    st.divider()
+    st.subheader("Recent Questions")
+    
+    conn = get_db_connection()
+    questions = conn.execute('SELECT id, name, question, date FROM questions ORDER BY id DESC').fetchall()
+    
+    if len(questions) == 0:
+        st.info("No questions yet. Ask the first one!")
+    else:
+        for q in questions:
+            with st.container():
+                if is_admin:
+                    col1, col2 = st.columns([5, 1]) 
+                    with col1:
+                        st.markdown(f"**{q['name']}** asked: *{q['question']}*")
+                        st.caption(f"Posted on {q['date']}")
+                    with col2:
+                        if st.button("🗑️ Delete", key=f"del_q_{q['id']}"):
+                            conn.execute('DELETE FROM replies WHERE question_id = ?', (q['id'],))
+                            conn.execute('DELETE FROM questions WHERE id = ?', (q['id'],))
+                            conn.commit()
+                            st.rerun()
+                else:
+                    st.markdown(f"**{q['name']}** asked: *{q['question']}*")
+                    st.caption(f"Posted on {q['date']}")
+
+                replies = conn.execute('SELECT reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
+                if replies:
+                    for r in replies:
+                        st.markdown(f"↳ 💬 {r['reply']}")
+                
+                with st.form(f"reply_form_{q['id']}"):
+                    reply_text = st.text_input("Write a reply...", key=f"reply_{q['id']}")
+                    submit_reply = st.form_submit_button("Reply")
+                    if submit_reply and reply_text:
+                        conn.execute('INSERT INTO replies (question_id, reply) VALUES (?, ?)', (q['id'], reply_text))
+                        conn.commit()
+                        st.rerun()
+                st.divider()
+    conn.close()
+
+# --- LIVE CHAT PAGE ---
+elif page == "Live Chat":
+    st.title("⚡ Live Chat Room")
+    st.write("Chat with classmates in real-time.")
+    
+    if is_admin:
+        if st.button("🗑️ Clear Chat History", type="primary"):
+            st.session_state.messages = []
+            st.rerun()
+        
+    st.divider()
+    
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Type your message here..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        response = f"Echo: {prompt}"
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant"):
+            st.markdown(response)
