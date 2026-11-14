@@ -25,9 +25,36 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row 
     return conn
 
-# 3. Sidebar Navigation
+# 3. Admin Login Setup (In Sidebar)
 st.sidebar.title("Navigation")
+
+# Check if the user is logged in
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
+
+# Admin Login form in the sidebar
+if not st.session_state.is_admin:
+    with st.sidebar.expander("🔐 Admin Login"):
+        password = st.text_input("Enter Admin Password", type="password")
+        if st.button("Login"):
+            # Check against the secret password in Streamlit Secrets
+            if password == st.secrets.get("ADMIN_PASSWORD", "JamesAdmin2024"):
+                st.session_state.is_admin = True
+                st.success("Logged in as Admin!")
+                st.rerun()
+            else:
+                st.error("Incorrect password")
+else:
+    st.sidebar.success("👑 Logged in as Admin")
+    if st.sidebar.button("Logout"):
+        st.session_state.is_admin = False
+        st.rerun()
+
+# Menu Navigation
 page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum", "Live Chat"])
+
+is_admin = st.session_state.is_admin # Shortcut variable to make code cleaner
+
 
 # --- HOME PAGE ---
 if page == "Home":
@@ -66,14 +93,15 @@ elif page == "Notice Board":
 
     st.divider()
     
-    # Clear all notices
-    if st.button("🗑️ Clear All Notices"):
-        conn = get_db_connection()
-        conn.execute('DELETE FROM notices')
-        conn.commit()
-        conn.close()
-        st.success("All notices cleared!")
-        st.rerun()
+    # Only show if Admin
+    if is_admin:
+        if st.button("🗑️ Clear All Notices"):
+            conn = get_db_connection()
+            conn.execute('DELETE FROM notices')
+            conn.commit()
+            conn.close()
+            st.success("All notices cleared!")
+            st.rerun()
 
     st.subheader("Latest Updates")
     conn = get_db_connection()
@@ -84,16 +112,19 @@ elif page == "Notice Board":
         st.info("No notices posted yet. Be the first!")
     else:
         for notice in notices:
-            col1, col2 = st.columns([5, 1])
-            with col1:
+            if is_admin:
+                col1, col2 = st.columns([5, 1])
+                with col1:
+                    st.success(notice['message'])
+                with col2:
+                    if st.button("🗑️", key=f"del_notice_{notice['id']}"):
+                        conn = get_db_connection()
+                        conn.execute('DELETE FROM notices WHERE id = ?', (notice['id'],))
+                        conn.commit()
+                        conn.close()
+                        st.rerun()
+            else:
                 st.success(notice['message'])
-            with col2:
-                if st.button("🗑️", key=f"del_notice_{notice['id']}"):
-                    conn = get_db_connection()
-                    conn.execute('DELETE FROM notices WHERE id = ?', (notice['id'],))
-                    conn.commit()
-                    conn.close()
-                    st.rerun()
 
 # --- RESOURCE VAULT PAGE ---
 elif page == "Resource Vault":
@@ -117,14 +148,14 @@ elif page == "Resource Vault":
     
     st.divider()
     
-    # Clear all resources
-    if st.button("🗑️ Clear All Resources"):
-        conn = get_db_connection()
-        conn.execute('DELETE FROM resources')
-        conn.commit()
-        conn.close()
-        st.success("All resources cleared!")
-        st.rerun()
+    if is_admin:
+        if st.button("🗑️ Clear All Resources"):
+            conn = get_db_connection()
+            conn.execute('DELETE FROM resources')
+            conn.commit()
+            conn.close()
+            st.success("All resources cleared!")
+            st.rerun()
 
     st.subheader("Available Resources")
     conn = get_db_connection()
@@ -134,17 +165,20 @@ elif page == "Resource Vault":
         st.info("No resources added yet.")
     else:
         for r in resources:
-            col1, col2, col3 = st.columns([2, 4, 1])
-            with col1:
-                st.write(f"**{r['unit_code']}**")
-            with col2:
-                st.write(f"{r['title']} ({r['file_name']})")
-            with col3:
-                if st.button("🗑️", key=f"del_res_{r['id']}"):
-                    conn.execute('DELETE FROM resources WHERE id = ?', (r['id'],))
-                    conn.commit()
-                    conn.close()
-                    st.rerun()
+            if is_admin:
+                col1, col2, col3 = st.columns([2, 4, 1])
+                with col1:
+                    st.write(f"**{r['unit_code']}**")
+                with col2:
+                    st.write(f"{r['title']} ({r['file_name']})")
+                with col3:
+                    if st.button("🗑️", key=f"del_res_{r['id']}"):
+                        conn.execute('DELETE FROM resources WHERE id = ?', (r['id'],))
+                        conn.commit()
+                        conn.close()
+                        st.rerun()
+            else:
+                st.write(f"**{r['unit_code']}** - {r['title']} ({r['file_name']})")
     conn.close()
 
 # --- CLASS FORUM PAGE ---
@@ -152,14 +186,15 @@ elif page == "Class Forum":
     st.title("💬 Class Q&A Forum")
     st.write("Ask questions about assignments, CATs, or anything stats-related!")
     
-    if st.button("🗑️ Clear All Forum Questions"):
-        conn = get_db_connection()
-        conn.execute('DELETE FROM questions')
-        conn.execute('DELETE FROM replies')
-        conn.commit()
-        conn.close()
-        st.success("All questions cleared!")
-        st.rerun()
+    if is_admin:
+        if st.button("🗑️ Clear All Forum Questions"):
+            conn = get_db_connection()
+            conn.execute('DELETE FROM questions')
+            conn.execute('DELETE FROM replies')
+            conn.commit()
+            conn.close()
+            st.success("All questions cleared!")
+            st.rerun()
 
     st.divider()
 
@@ -187,18 +222,20 @@ elif page == "Class Forum":
     else:
         for q in questions:
             with st.container():
-                col1, col2 = st.columns([5, 1]) 
-                
-                with col1:
+                if is_admin:
+                    col1, col2 = st.columns([5, 1]) 
+                    with col1:
+                        st.markdown(f"**{q['name']}** asked: *{q['question']}*")
+                        st.caption(f"Posted on {q['date']}")
+                    with col2:
+                        if st.button("🗑️ Delete", key=f"del_q_{q['id']}"):
+                            conn.execute('DELETE FROM replies WHERE question_id = ?', (q['id'],))
+                            conn.execute('DELETE FROM questions WHERE id = ?', (q['id'],))
+                            conn.commit()
+                            st.rerun()
+                else:
                     st.markdown(f"**{q['name']}** asked: *{q['question']}*")
                     st.caption(f"Posted on {q['date']}")
-                
-                with col2:
-                    if st.button("🗑️ Delete", key=f"del_q_{q['id']}"):
-                        conn.execute('DELETE FROM replies WHERE question_id = ?', (q['id'],))
-                        conn.execute('DELETE FROM questions WHERE id = ?', (q['id'],))
-                        conn.commit()
-                        st.rerun()
 
                 replies = conn.execute('SELECT reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
                 if replies:
@@ -220,9 +257,10 @@ elif page == "Live Chat":
     st.title("⚡ Live Chat Room")
     st.write("Chat with classmates in real-time.")
     
-    if st.button("🗑️ Clear Chat History", type="primary"):
-        st.session_state.messages = []
-        st.rerun()
+    if is_admin:
+        if st.button("🗑️ Clear Chat History", type="primary"):
+            st.session_state.messages = []
+            st.rerun()
         
     st.divider()
     
