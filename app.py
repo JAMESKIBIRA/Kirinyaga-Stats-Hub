@@ -40,7 +40,6 @@ if page == "Home":
 elif page == "Timetable":
     st.title("🗓️ Class Timetable")
     st.write("Here is the schedule for this semester.")
-
     timetable_data = {
         "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         "8:00 AM - 10:00 AM": ["Calculus III", "Probability II", "Epidemiology", "Linear Algebra II", "Calculus III"],
@@ -66,16 +65,35 @@ elif page == "Notice Board":
             st.rerun()
 
     st.divider()
+    
+    # Clear all notices
+    if st.button("🗑️ Clear All Notices"):
+        conn = get_db_connection()
+        conn.execute('DELETE FROM notices')
+        conn.commit()
+        conn.close()
+        st.success("All notices cleared!")
+        st.rerun()
+
     st.subheader("Latest Updates")
     conn = get_db_connection()
-    notices = conn.execute('SELECT message FROM notices ORDER BY id DESC').fetchall()
+    notices = conn.execute('SELECT id, message FROM notices ORDER BY id DESC').fetchall()
     conn.close()
     
     if len(notices) == 0:
         st.info("No notices posted yet. Be the first!")
     else:
         for notice in notices:
-            st.success(notice['message'])
+            col1, col2 = st.columns([5, 1])
+            with col1:
+                st.success(notice['message'])
+            with col2:
+                if st.button("🗑️", key=f"del_notice_{notice['id']}"):
+                    conn = get_db_connection()
+                    conn.execute('DELETE FROM notices WHERE id = ?', (notice['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
 
 # --- RESOURCE VAULT PAGE ---
 elif page == "Resource Vault":
@@ -98,22 +116,53 @@ elif page == "Resource Vault":
             st.rerun()
     
     st.divider()
+    
+    # Clear all resources
+    if st.button("🗑️ Clear All Resources"):
+        conn = get_db_connection()
+        conn.execute('DELETE FROM resources')
+        conn.commit()
+        conn.close()
+        st.success("All resources cleared!")
+        st.rerun()
+
     st.subheader("Available Resources")
     conn = get_db_connection()
-    resources = conn.execute('SELECT unit_code, title, file_name FROM resources ORDER BY id DESC').fetchall()
-    conn.close()
+    resources = conn.execute('SELECT id, unit_code, title, file_name FROM resources ORDER BY id DESC').fetchall()
     
     if len(resources) == 0:
         st.info("No resources added yet.")
     else:
-        df_resources = pd.DataFrame([dict(r) for r in resources])
-        st.dataframe(df_resources, width="stretch")
+        for r in resources:
+            col1, col2, col3 = st.columns([2, 4, 1])
+            with col1:
+                st.write(f"**{r['unit_code']}**")
+            with col2:
+                st.write(f"{r['title']} ({r['file_name']})")
+            with col3:
+                if st.button("🗑️", key=f"del_res_{r['id']}"):
+                    conn.execute('DELETE FROM resources WHERE id = ?', (r['id'],))
+                    conn.commit()
+                    conn.close()
+                    st.rerun()
+    conn.close()
 
 # --- CLASS FORUM PAGE ---
 elif page == "Class Forum":
     st.title("💬 Class Q&A Forum")
     st.write("Ask questions about assignments, CATs, or anything stats-related!")
     
+    if st.button("🗑️ Clear All Forum Questions"):
+        conn = get_db_connection()
+        conn.execute('DELETE FROM questions')
+        conn.execute('DELETE FROM replies')
+        conn.commit()
+        conn.close()
+        st.success("All questions cleared!")
+        st.rerun()
+
+    st.divider()
+
     with st.form("ask_form", clear_on_submit=True):
         name = st.text_input("Your Name (or nickname):")
         question = st.text_area("Your Question:")
@@ -138,9 +187,19 @@ elif page == "Class Forum":
     else:
         for q in questions:
             with st.container():
-                st.markdown(f"**{q['name']}** asked: *{q['question']}*")
-                st.caption(f"Posted on {q['date']}")
+                col1, col2 = st.columns([5, 1]) 
                 
+                with col1:
+                    st.markdown(f"**{q['name']}** asked: *{q['question']}*")
+                    st.caption(f"Posted on {q['date']}")
+                
+                with col2:
+                    if st.button("🗑️ Delete", key=f"del_q_{q['id']}"):
+                        conn.execute('DELETE FROM replies WHERE question_id = ?', (q['id'],))
+                        conn.execute('DELETE FROM questions WHERE id = ?', (q['id'],))
+                        conn.commit()
+                        st.rerun()
+
                 replies = conn.execute('SELECT reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
                 if replies:
                     for r in replies:
@@ -161,7 +220,6 @@ elif page == "Live Chat":
     st.title("⚡ Live Chat Room")
     st.write("Chat with classmates in real-time.")
     
-    # NEW: Button to clear the chat messages
     if st.button("🗑️ Clear Chat History", type="primary"):
         st.session_state.messages = []
         st.rerun()
