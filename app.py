@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import os
 
 # 1. Page Configuration
 st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="wide")
@@ -9,13 +10,15 @@ st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="w
 DB_FILE = 'stats_hub.db'
 
 def init_db():
+    # Delete the old database if it exists to apply the new schema
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
+        
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS notices (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT)''')
-    
-    # NOTICE: We added 'file_data BLOB' to the resources table to store the actual file
+    # This now includes the file_data BLOB to hold the actual files
     c.execute('''CREATE TABLE IF NOT EXISTS resources (id INTEGER PRIMARY KEY AUTOINCREMENT, unit_code TEXT, title TEXT, file_name TEXT, file_data BLOB)''')
-    
     c.execute('''CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, question TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
@@ -138,7 +141,6 @@ elif page == "Resource Vault":
         submit_resource = st.form_submit_button("Save to Vault")
         
         if submit_resource and unit_code and title and uploaded_file:
-            # Read the file into bytes
             file_bytes = uploaded_file.read()
             
             conn = get_db_connection()
@@ -174,7 +176,6 @@ elif page == "Resource Vault":
             with col2:
                 st.write(f"{r['title']}")
             with col3:
-                # Display download button if file data exists
                 if r['file_data'] is not None:
                     st.download_button(
                         label="⬇️ Download",
