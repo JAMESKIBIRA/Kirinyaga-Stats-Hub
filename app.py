@@ -5,7 +5,7 @@ import sqlite3
 # 1. Page Configuration
 st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="wide")
 
-# 2. Database Setup - Renamed to v2 to force a fresh start
+# 2. Database Setup
 DB_FILE = 'stats_hub_v2.db'
 
 def init_db():
@@ -45,7 +45,8 @@ else:
         st.session_state.is_admin = False
         st.rerun()
 
-page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum"])
+# LIVE CHAT IS BACK IN THE MENU
+page = st.sidebar.radio("Go to", ["Home", "Timetable", "Notice Board", "Resource Vault", "Class Forum", "Live Chat"])
 is_admin = st.session_state.is_admin 
 
 # --- HOME PAGE ---
@@ -133,7 +134,7 @@ elif page == "Resource Vault":
                     st.rerun()
     conn.close()
 
-# --- CLASS FORUM PAGE (SIMPLIFIED TO ENSURE IT WORKS) ---
+# --- CLASS FORUM PAGE ---
 elif page == "Class Forum":
     st.title("💬 Class Q&A Forum")
     
@@ -170,17 +171,14 @@ elif page == "Class Forum":
     for q in questions:
         st.markdown(f"**{q['name']}** asked: *{q['question']}*")
         
-        # Show existing replies
         replies = conn.execute('SELECT reply_name, reply FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
         for r in replies:
             st.markdown(f"↳ 💬 **{r['reply_name']}** replied: {r['reply']}")
             
-        # Reply inputs
         col1, col2 = st.columns([1, 3])
         with col1: r_name = st.text_input("Name", key=f"r_name_{q['id']}", label_visibility="collapsed", placeholder="Your Name")
         with col2: r_text = st.text_input("Reply", key=f"r_text_{q['id']}", label_visibility="collapsed", placeholder="Reply here...")
         
-        # Unique key for EVERY button is the most important part
         if st.button("Reply", key=f"btn_reply_{q['id']}"):
             if r_name and r_text:
                 conn.execute('INSERT INTO replies (question_id, reply_name, reply) VALUES (?, ?, ?)', (q['id'], r_name, r_text))
@@ -198,3 +196,32 @@ elif page == "Class Forum":
                 
         st.divider()
     conn.close()
+
+# --- LIVE CHAT PAGE (RESTORED) ---
+elif page == "Live Chat":
+    st.title("⚡ Live Chat Room")
+    st.write("Chat with classmates in real-time.")
+    
+    if is_admin:
+        if st.button("🗑️ Clear Chat History", type="primary"):
+            st.session_state.messages = []
+            st.rerun()
+        
+    st.divider()
+    
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Type your message here..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        response = f"Echo: {prompt}"
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant"):
+            st.markdown(response)
