@@ -10,14 +10,12 @@ st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="w
 DB_FILE = 'stats_hub.db'
 
 def init_db():
-    # Delete the old database if it exists to apply the new schema
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
         
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS notices (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT)''')
-    # This now includes the file_data BLOB to hold the actual files
     c.execute('''CREATE TABLE IF NOT EXISTS resources (id INTEGER PRIMARY KEY AUTOINCREMENT, unit_code TEXT, title TEXT, file_name TEXT, file_data BLOB)''')
     c.execute('''CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, question TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
@@ -129,20 +127,19 @@ elif page == "Notice Board":
             else:
                 st.success(notice['message'])
 
-# --- RESOURCE VAULT PAGE (UPDATED WITH DOWNLOAD BUTTON) ---
+# --- RESOURCE VAULT PAGE (UPDATED TO FIX UPLOAD BUG) ---
 elif page == "Resource Vault":
     st.title("📚 Resource Vault")
     st.write("Add past papers or notes to the database.")
     
-    with st.form("upload_form", clear_on_submit=True):
-        unit_code = st.text_input("Unit Code (e.g., STA 2101)")
-        title = st.text_input("Resource Title (e.g., CAT 1 Past Paper)")
-        uploaded_file = st.file_uploader("Upload file (PDF, DOCX)", type=["pdf", "docx"])
-        submit_resource = st.form_submit_button("Save to Vault")
-        
-        if submit_resource and unit_code and title and uploaded_file:
+    # Fields moved outside the form to fix the file upload bug
+    unit_code = st.text_input("Unit Code (e.g., STA 2101)")
+    title = st.text_input("Resource Title (e.g., CAT 1 Past Paper)")
+    uploaded_file = st.file_uploader("Upload file (PDF, DOCX)", type=["pdf", "docx"])
+    
+    if st.button("Save to Vault"):
+        if unit_code and title and uploaded_file:
             file_bytes = uploaded_file.read()
-            
             conn = get_db_connection()
             conn.execute('INSERT INTO resources (unit_code, title, file_name, file_data) VALUES (?, ?, ?, ?)', 
                          (unit_code, title, uploaded_file.name, file_bytes))
@@ -150,6 +147,8 @@ elif page == "Resource Vault":
             conn.close()
             st.success(f"Saved {title} to database!")
             st.rerun()
+        else:
+            st.error("Please fill in all fields and upload a file.")
     
     st.divider()
     
