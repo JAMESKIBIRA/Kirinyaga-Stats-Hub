@@ -10,7 +10,6 @@ st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="w
 DB_FILE = 'stats_hub.db'
 
 def init_db():
-    # Clear old database so the new 'reply_name' column can be created
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
         
@@ -19,8 +18,6 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS notices (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS resources (id INTEGER PRIMARY KEY AUTOINCREMENT, unit_code TEXT, title TEXT, file_name TEXT, file_data BLOB)''')
     c.execute('''CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, question TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    
-    # We added 'reply_name' to this table!
     c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply_name TEXT, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
@@ -212,18 +209,22 @@ elif page == "Class Forum":
 
     st.divider()
 
+    # ASK A QUESTION SECTION
     with st.form("ask_form", clear_on_submit=True):
         name = st.text_input("Your Name (or nickname):")
         question = st.text_area("Your Question:")
         submit_q = st.form_submit_button("Post Question")
         
-        if submit_q and name and question:
-            conn = get_db_connection()
-            conn.execute('INSERT INTO questions (name, question) VALUES (?, ?)', (name, question))
-            conn.commit()
-            conn.close()
-            st.success("Question posted!")
-            st.rerun()
+        if submit_q:
+            if name and question:
+                conn = get_db_connection()
+                conn.execute('INSERT INTO questions (name, question) VALUES (?, ?)', (name, question))
+                conn.commit()
+                conn.close()
+                st.success("Question posted!")
+                st.rerun()
+            else:
+                st.error("Please fill in both your name and the question.")
             
     st.divider()
     st.subheader("Recent Questions")
@@ -257,17 +258,20 @@ elif page == "Class Forum":
                     for r in replies:
                         st.markdown(f"↳ 💬 **{r['reply_name']}** replied: {r['reply']}")
                 
+                # REPLY SECTION
                 with st.form(f"reply_form_{q['id']}"):
-                    # NEW: Input box for the replier's name
                     reply_name_input = st.text_input("Your Name:", key=f"reply_name_{q['id']}")
                     reply_text = st.text_input("Write a reply...", key=f"reply_{q['id']}")
                     submit_reply = st.form_submit_button("Reply")
                     
-                    if submit_reply and reply_name_input and reply_text:
-                        conn.execute('INSERT INTO replies (question_id, reply_name, reply) VALUES (?, ?, ?)', 
-                                     (q['id'], reply_name_input, reply_text))
-                        conn.commit()
-                        st.rerun()
+                    if submit_reply:
+                        if reply_name_input and reply_text:
+                            conn.execute('INSERT INTO replies (question_id, reply_name, reply) VALUES (?, ?, ?)', 
+                                         (q['id'], reply_name_input, reply_text))
+                            conn.commit()
+                            st.rerun()
+                        else:
+                            st.error("Please enter your name and a reply.")
                 st.divider()
     conn.close()
 
