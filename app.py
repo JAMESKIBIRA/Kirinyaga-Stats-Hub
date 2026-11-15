@@ -10,6 +10,7 @@ st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="w
 DB_FILE = 'stats_hub.db'
 
 def init_db():
+    # Clear old database to apply the new 'reply_name' column
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
         
@@ -82,16 +83,17 @@ elif page == "Timetable":
 elif page == "Notice Board":
     st.title("📌 Notice Board")
     
-    with st.form("notice_form", clear_on_submit=True):
-        new_notice = st.text_area("Type a new notice for the class:")
-        submitted = st.form_submit_button("Post Notice")
-        if submitted and new_notice:
+    new_notice = st.text_area("Type a new notice for the class:")
+    if st.button("Post Notice"):
+        if new_notice:
             conn = get_db_connection()
             conn.execute('INSERT INTO notices (message) VALUES (?)', (new_notice,))
             conn.commit()
             conn.close()
             st.success("Notice posted successfully!")
             st.rerun()
+        else:
+            st.error("Please type a notice before posting.")
 
     st.divider()
     
@@ -209,23 +211,22 @@ elif page == "Class Forum":
 
     st.divider()
 
-    # ASK A QUESTION SECTION
-    with st.form("ask_form", clear_on_submit=True):
-        name = st.text_input("Your Name (or nickname):")
-        question = st.text_area("Your Question:")
-        submit_q = st.form_submit_button("Post Question")
-        
-        if submit_q:
-            if name and question:
-                conn = get_db_connection()
-                conn.execute('INSERT INTO questions (name, question) VALUES (?, ?)', (name, question))
-                conn.commit()
-                conn.close()
-                st.success("Question posted!")
-                st.rerun()
-            else:
-                st.error("Please fill in both your name and the question.")
-            
+    # ASK A QUESTION (No forms, just normal inputs to prevent bugs)
+    st.subheader("Ask a Question")
+    q_name = st.text_input("Your Name (or nickname):", key="q_name_input")
+    q_text = st.text_area("Your Question:", key="q_text_input")
+    
+    if st.button("Post Question"):
+        if q_name and q_text:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO questions (name, question) VALUES (?, ?)', (q_name, q_text))
+            conn.commit()
+            conn.close()
+            st.success("Question posted!")
+            st.rerun()
+        else:
+            st.error("Please fill in both your name and the question.")
+
     st.divider()
     st.subheader("Recent Questions")
     
@@ -237,6 +238,7 @@ elif page == "Class Forum":
     else:
         for q in questions:
             with st.container():
+                # Display Question
                 if is_admin:
                     col1, col2 = st.columns([5, 1]) 
                     with col1:
@@ -252,26 +254,28 @@ elif page == "Class Forum":
                     st.markdown(f"**{q['name']}** asked: *{q['question']}*")
                     st.caption(f"Posted on {q['date']}")
 
-                # Fetch replies and display who wrote them
+                # Display Replies
                 replies = conn.execute('SELECT reply_name, reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
                 if replies:
                     for r in replies:
                         st.markdown(f"↳ 💬 **{r['reply_name']}** replied: {r['reply']}")
                 
-                # REPLY SECTION
-                with st.form(f"reply_form_{q['id']}"):
-                    reply_name_input = st.text_input("Your Name:", key=f"reply_name_{q['id']}")
-                    reply_text = st.text_input("Write a reply...", key=f"reply_{q['id']}")
-                    submit_reply = st.form_submit_button("Reply")
-                    
-                    if submit_reply:
-                        if reply_name_input and reply_text:
+                # REPLY SECTION (No forms)
+                col_name, col_reply, col_btn = st.columns([2, 4, 1])
+                with col_name:
+                    r_name = st.text_input("Your Name", key=f"r_name_{q['id']}", label_visibility="collapsed", placeholder="Your Name")
+                with col_reply:
+                    r_text = st.text_input("Write a reply...", key=f"r_text_{q['id']}", label_visibility="collapsed", placeholder="Write a reply...")
+                with col_btn:
+                    if st.button("Reply", key=f"btn_reply_{q['id']}"):
+                        if r_name and r_text:
                             conn.execute('INSERT INTO replies (question_id, reply_name, reply) VALUES (?, ?, ?)', 
-                                         (q['id'], reply_name_input, reply_text))
+                                         (q['id'], r_name, r_text))
                             conn.commit()
                             st.rerun()
                         else:
-                            st.error("Please enter your name and a reply.")
+                            st.error("Enter name & reply")
+                            
                 st.divider()
     conn.close()
 
