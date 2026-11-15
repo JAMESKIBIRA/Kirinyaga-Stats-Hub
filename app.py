@@ -10,14 +10,18 @@ st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="📊", layout="w
 DB_FILE = 'stats_hub.db'
 
 def init_db():
-    # We do NOT delete the database anymore. We just connect and create tables if they don't exist.
+    # Clear old database so the new 'reply_name' column can be created
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
+        
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS notices (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT)''')
-    # The file_data column stores the actual PDF
     c.execute('''CREATE TABLE IF NOT EXISTS resources (id INTEGER PRIMARY KEY AUTOINCREMENT, unit_code TEXT, title TEXT, file_name TEXT, file_data BLOB)''')
     c.execute('''CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, question TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # We added 'reply_name' to this table!
+    c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply_name TEXT, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
 
@@ -131,7 +135,6 @@ elif page == "Resource Vault":
     st.title("📚 Resource Vault")
     st.write("Add past papers or notes to the database.")
     
-    # Fields are outside the form
     unit_code = st.text_input("Unit Code (e.g., STA 2101)")
     title = st.text_input("Resource Title (e.g., CAT 1 Past Paper)")
     uploaded_file = st.file_uploader("Upload file (PDF, DOCX)", type=["pdf", "docx"])
@@ -248,16 +251,21 @@ elif page == "Class Forum":
                     st.markdown(f"**{q['name']}** asked: *{q['question']}*")
                     st.caption(f"Posted on {q['date']}")
 
-                replies = conn.execute('SELECT reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
+                # Fetch replies and display who wrote them
+                replies = conn.execute('SELECT reply_name, reply, date FROM replies WHERE question_id = ?', (q['id'],)).fetchall()
                 if replies:
                     for r in replies:
-                        st.markdown(f"↳ 💬 {r['reply']}")
+                        st.markdown(f"↳ 💬 **{r['reply_name']}** replied: {r['reply']}")
                 
                 with st.form(f"reply_form_{q['id']}"):
+                    # NEW: Input box for the replier's name
+                    reply_name_input = st.text_input("Your Name:", key=f"reply_name_{q['id']}")
                     reply_text = st.text_input("Write a reply...", key=f"reply_{q['id']}")
                     submit_reply = st.form_submit_button("Reply")
-                    if submit_reply and reply_text:
-                        conn.execute('INSERT INTO replies (question_id, reply) VALUES (?, ?)', (q['id'], reply_text))
+                    
+                    if submit_reply and reply_name_input and reply_text:
+                        conn.execute('INSERT INTO replies (question_id, reply_name, reply) VALUES (?, ?, ?)', 
+                                     (q['id'], reply_name_input, reply_text))
                         conn.commit()
                         st.rerun()
                 st.divider()
