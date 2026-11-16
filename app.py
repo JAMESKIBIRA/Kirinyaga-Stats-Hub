@@ -39,8 +39,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database Setup (Fresh v5 to guarantee new tables are created)
-DB_FILE = 'stats_hub_v5.db'
+# 3. Database Setup (v6 to guarantee fresh tables)
+DB_FILE = 'stats_hub_v6.db'
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -84,7 +84,6 @@ with st.sidebar:
             
     st.divider()
     
-    # This is where the menu is defined. Class Register is included.
     page = st.radio("Go to", ["🏠 Home", "📅 Timetable", "👥 Class Register", "📌 Notice Board", "📚 Resource Vault", "💬 Class Forum", "⚡ Live Chat"])
     is_admin = st.session_state.is_admin 
 
@@ -118,8 +117,8 @@ elif page == "👥 Class Register":
     
     if is_admin:
         st.subheader("Add a New Student")
-        student_name = st.text_input("Student Name:")
-        reg_number = st.text_input("Registration Number:")
+        student_name = st.text_input("Student Name:", key="add_name")
+        reg_number = st.text_input("Registration Number:", key="add_reg")
         
         if st.button("Add to Register"):
             if student_name and reg_number:
@@ -136,12 +135,28 @@ elif page == "👥 Class Register":
                 st.error("Please fill in both fields.")
         st.divider()
 
-    st.subheader("Current Class List")
     conn = get_db_connection()
-    students = conn.execute('SELECT id, name, reg_number FROM students ORDER BY name ASC').fetchall()
     
+    # Student Counter
+    total_students = conn.execute('SELECT COUNT(*) FROM students').fetchone()[0]
+    st.markdown(f"### 🎓 Total Registered Students: **{total_students}**")
+    
+    # Search Bar
+    search_query = st.text_input("🔍 Search for a student by name or reg number:", key="search_student")
+    
+    if search_query:
+        students = conn.execute('SELECT id, name, reg_number FROM students WHERE name LIKE ? OR reg_number LIKE ? ORDER BY name ASC', 
+                                (f'%{search_query}%', f'%{search_query}%')).fetchall()
+    else:
+        students = conn.execute('SELECT id, name, reg_number FROM students ORDER BY name ASC').fetchall()
+    
+    st.divider()
+
     if len(students) == 0:
-        st.info("The class register is currently empty.")
+        if search_query:
+            st.warning(f"No student found matching '{search_query}'.")
+        else:
+            st.info("The class register is currently empty.")
     else:
         for s in students:
             if is_admin:
