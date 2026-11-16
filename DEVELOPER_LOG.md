@@ -1,10 +1,10 @@
-Developer Log: James Kibira Kiruma
+DEVELOPER LOG: JAMES KIBIRA KIRUMA
 
 Role: Data Analyst & Statistician
 Focus: Full-Stack Development, Statistical Modeling, Data Engineering
 Date: November 2026
 
-1. Technical Projects
+1. TECHNICAL PROJECTS
 
 Kirinyaga Stats Hub (Full-Stack Web & Android App)
 
@@ -31,20 +31,20 @@ Personal Portfolio Website
 · Tech Stack: Python, Streamlit.
 · Deployment: Live at james-kiruma.streamlit.app. Integrated project showcases, tech stack display, and a functional contact form.
 
-2. Career & Professional Development
+2. CAREER & PROFESSIONAL DEVELOPMENT
 
 · Resume: Developed an ATS-friendly, 1-page technical resume highlighting data engineering and statistical modeling projects.
 · LinkedIn: Optimized profile with technical headline, project media, and "Open to Work" status (Recruiters only). Published a technical post detailing the Kirinyaga Stats Hub architecture.
 · Applications: Submitted application for the Lochmueller Group 2027 Data Analyst/Consultant Internship.
 
-3. Key Technical Learnings
+3. KEY TECHNICAL LEARNINGS
 
 · Database Caching: Resolved SQLite schema update failures by versioning database files (e.g., stats_hub_v3.db) to force server refreshes.
 · Data Persistence: Implemented file upload storage by converting files to binary bytes and storing them as BLOBs in SQLite.
 · UI/UX: Utilized custom CSS within Streamlit to override default themes and create a modern interface.
 · Session State: Managed user authentication and chat history using Streamlit's st.session_state.
 
-4. Code Metrics
+4. CODE METRICS
 
 · Total Code Written: 5,603+ lines (Python, R, SQL).
 · Final App Code: 231 lines (Kirinyaga Stats Hub).
