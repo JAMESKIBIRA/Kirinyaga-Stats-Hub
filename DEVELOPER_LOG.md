@@ -47,5 +47,5 @@ Personal Portfolio Website
 4. CODE METRICS
 
 · Total Code Written: 5,603+ lines (Python, R, SQL).
-· Final App Code: 400 lines (Kirinyaga Stats Hub).
+· Final App Code: 421 lines (Kirinyaga Stats Hub).
 · Deployments: 3 live web applications, 1 Android APK.
