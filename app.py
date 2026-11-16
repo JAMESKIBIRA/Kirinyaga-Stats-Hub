@@ -39,8 +39,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database Setup (Fresh v4 to apply the new Class Register table)
-DB_FILE = 'stats_hub_v4.db'
+# 3. Database Setup (Fresh v5 to guarantee new tables are created)
+DB_FILE = 'stats_hub_v5.db'
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -49,7 +49,6 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS resources (id INTEGER PRIMARY KEY AUTOINCREMENT, unit_code TEXT, title TEXT, file_name TEXT, file_data BLOB)''')
     c.execute('''CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, question TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     c.execute('''CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY AUTOINCREMENT, question_id INTEGER, reply_name TEXT, reply TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    # NEW: Class Register Table
     c.execute('''CREATE TABLE IF NOT EXISTS students (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, reg_number TEXT UNIQUE)''')
     conn.commit()
     conn.close()
@@ -84,7 +83,8 @@ with st.sidebar:
             st.rerun()
             
     st.divider()
-    # UPDATED MENU
+    
+    # This is where the menu is defined. Class Register is included.
     page = st.radio("Go to", ["🏠 Home", "📅 Timetable", "👥 Class Register", "📌 Notice Board", "📚 Resource Vault", "💬 Class Forum", "⚡ Live Chat"])
     is_admin = st.session_state.is_admin 
 
@@ -111,7 +111,7 @@ elif page == "📅 Timetable":
     }
     st.dataframe(pd.DataFrame(timetable_data), width="stretch", hide_index=True)
 
-# --- CLASS REGISTER PAGE (NEW) ---
+# --- CLASS REGISTER PAGE ---
 elif page == "👥 Class Register":
     st.title("👥 Class Register")
     st.write("Official list of students in the BSc Statistics class.")
