@@ -39,7 +39,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database Setup (v6 to guarantee fresh tables)
+# 3. Database Setup (v6)
 DB_FILE = 'stats_hub_v6.db'
 
 def init_db():
@@ -137,11 +137,9 @@ elif page == "👥 Class Register":
 
     conn = get_db_connection()
     
-    # Student Counter
     total_students = conn.execute('SELECT COUNT(*) FROM students').fetchone()[0]
     st.markdown(f"### 🎓 Total Registered Students: **{total_students}**")
     
-    # Search Bar
     search_query = st.text_input("🔍 Search for a student by name or reg number:", key="search_student")
     
     if search_query:
@@ -161,7 +159,7 @@ elif page == "👥 Class Register":
         for s in students:
             if is_admin:
                 col1, col2, col3 = st.columns([3, 3, 1])
-                with col1: st.write(f"**{s['name']}**")
+                with col1: st.write(s['name']) # Removed bold asterisks
                 with col2: st.write(s['reg_number'])
                 with col3:
                     if st.button("🗑️", key=f"del_student_{s['id']}"):
@@ -169,7 +167,7 @@ elif page == "👥 Class Register":
                         conn.commit()
                         st.rerun()
             else:
-                st.write(f"**{s['name']}** - {s['reg_number']}")
+                st.write(f"{s['name']} - {s['reg_number']}") # Removed bold asterisks
     conn.close()
 
 # --- NOTICE BOARD PAGE ---
