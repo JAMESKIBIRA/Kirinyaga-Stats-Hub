@@ -84,7 +84,12 @@ with st.sidebar:
             
     st.divider()
     
-    page = st.radio("Go to", ["🏠 Home", "📅 Timetable", "👥 Class Register", "📌 Notice Board", "📚 Resource Vault", "💬 Class Forum", "⚡ Live Chat"])
+    # Set default page if not set
+    if "page" not in st.session_state:
+        st.session_state.page = "🏠 Home"
+        
+    # The Radio button uses the session state to allow navigation from the Home Page buttons
+    page = st.radio("Go to", ["🏠 Home", "📅 Timetable", "👥 Class Register", "📌 Notice Board", "📚 Resource Vault", "💬 Class Forum", "⚡ Live Chat"], key="page")
     is_admin = st.session_state.is_admin 
 
 # --- HOME PAGE ---
@@ -92,10 +97,58 @@ if page == "🏠 Home":
     st.markdown("<h1 style='text-align: center;'>Welcome to the Kirinyaga Stats Hub! 📊</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-size: 18px;'>The ultimate centralized platform for all BSc Statistics students at Kirinyaga University. No more scrolling through endless WhatsApp messages! 💅✨</p>", unsafe_allow_html=True)
     
+    st.divider()
+
+    # Personalized Greeting
+    if is_admin:
+        st.success("👑 Welcome back, Admin! You have full access to manage the hub.")
+    else:
+        st.info("👋 Hey there! Welcome to the squad. Check out the timetable or ask a question in the forum.")
+
+    st.write("") # Spacing
+
+    # The Premium Cards
     col1, col2, col3 = st.columns(3)
-    with col1: st.info("📅 **Timetable**\nCheck your classes.")
-    with col2: st.info("📚 **Vault**\nDownload past papers.")
-    with col3: st.info("💬 **Forum**\nAsk & answer questions.")
+    
+    with col1:
+        with st.container():
+            st.markdown("### 📅 Timetable")
+            st.write("Check your daily classes, venues, and lecturers so you never miss a CAT.")
+            if st.button("Go to Timetable", use_container_width=True):
+                st.session_state.page = "📅 Timetable"
+                st.rerun()
+                
+    with col2:
+        with st.container():
+            st.markdown("### 📚 Resource Vault")
+            st.write("Download past papers, notes, and modules uploaded by the class.")
+            if st.button("Open Vault", use_container_width=True):
+                st.session_state.page = "📚 Resource Vault"
+                st.rerun()
+                
+    with col3:
+        with st.container():
+            st.markdown("### 💬 Class Forum")
+            st.write("Ask questions, share answers, and help the squad out.")
+            if st.button("Join Forum", use_container_width=True):
+                st.session_state.page = "💬 Class Forum"
+                st.rerun()
+
+    st.divider()
+
+    # Share the App Section
+    st.subheader("🔗 Share the App")
+    st.write("Send this link to your classmates so they can join the hub!")
+    
+    app_link = "https://kirinyaga-stats-james.streamlit.app"
+    
+    col_link, col_btn = st.columns([4, 1])
+    with col_link:
+        st.code(app_link, language="text")
+    with col_btn:
+        if st.button("📋 Copy Link"):
+            st.success("Link ready to share!")
+            st.toast("Link ready to share!", icon="✅")
 
 # --- TIMETABLE PAGE ---
 elif page == "📅 Timetable":
@@ -159,7 +212,7 @@ elif page == "👥 Class Register":
         for s in students:
             if is_admin:
                 col1, col2, col3 = st.columns([3, 3, 1])
-                with col1: st.write(s['name']) # Removed bold asterisks
+                with col1: st.write(s['name']) 
                 with col2: st.write(s['reg_number'])
                 with col3:
                     if st.button("🗑️", key=f"del_student_{s['id']}"):
@@ -167,7 +220,7 @@ elif page == "👥 Class Register":
                         conn.commit()
                         st.rerun()
             else:
-                st.write(f"{s['name']} - {s['reg_number']}") # Removed bold asterisks
+                st.write(f"{s['name']} - {s['reg_number']}") 
     conn.close()
 
 # --- NOTICE BOARD PAGE ---
