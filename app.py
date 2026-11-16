@@ -5,10 +5,12 @@ import sqlite3
 # 1. Page Configuration
 st.set_page_config(page_title="Kirinyaga Stats Hub", page_icon="✨", layout="wide", initial_sidebar_state="expanded")
 
-# 2. Custom CSS
+# 2. Custom CSS (Added Sidebar Button Styling)
 st.markdown("""
 <style>
     .stApp { background-color: #f8f9fa; }
+    
+    /* General Button Styling */
     .stButton>button {
         border-radius: 12px;
         font-weight: 600;
@@ -19,6 +21,17 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    
+    /* Make Sidebar Buttons Square and Full Width */
+    [data-testid="stSidebar"] .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        text-align: left;
+        padding: 10px 15px;
+        margin-bottom: 5px;
+        background-color: white;
+    }
+    
     .forum-card {
         background-color: white;
         padding: 20px;
@@ -39,7 +52,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database Setup (v6)
+# 3. Database Setup
 DB_FILE = 'stats_hub_v6.db'
 
 def init_db():
@@ -84,12 +97,26 @@ with st.sidebar:
             
     st.divider()
     
-    # Set default page if not set
+    # NEW: Button-based Navigation
     if "page" not in st.session_state:
         st.session_state.page = "🏠 Home"
-        
-    # The Radio button uses the session state to allow navigation from the Home Page buttons
-    page = st.radio("Go to", ["🏠 Home", "📅 Timetable", "👥 Class Register", "📌 Notice Board", "📚 Resource Vault", "💬 Class Forum", "⚡ Live Chat"], key="page")
+
+    if st.button("🏠 Home", use_container_width=True):
+        st.session_state.page = "🏠 Home"
+    if st.button("📅 Timetable", use_container_width=True):
+        st.session_state.page = "📅 Timetable"
+    if st.button("👥 Class Register", use_container_width=True):
+        st.session_state.page = "👥 Class Register"
+    if st.button("📌 Notice Board", use_container_width=True):
+        st.session_state.page = "📌 Notice Board"
+    if st.button("📚 Resource Vault", use_container_width=True):
+        st.session_state.page = "📚 Resource Vault"
+    if st.button("💬 Class Forum", use_container_width=True):
+        st.session_state.page = "💬 Class Forum"
+    if st.button("⚡ Live Chat", use_container_width=True):
+        st.session_state.page = "⚡ Live Chat"
+
+    page = st.session_state.page
     is_admin = st.session_state.is_admin 
 
 # --- HOME PAGE ---
@@ -99,22 +126,20 @@ if page == "🏠 Home":
     
     st.divider()
 
-    # Personalized Greeting
     if is_admin:
         st.success("👑 Welcome back, Admin! You have full access to manage the hub.")
     else:
         st.info("👋 Hey there! Welcome to the squad. Check out the timetable or ask a question in the forum.")
 
-    st.write("") # Spacing
+    st.write("") 
 
-    # The Premium Cards
     col1, col2, col3 = st.columns(3)
     
     with col1:
         with st.container():
             st.markdown("### 📅 Timetable")
             st.write("Check your daily classes, venues, and lecturers so you never miss a CAT.")
-            if st.button("Go to Timetable", use_container_width=True):
+            if st.button("Go to Timetable", use_container_width=True, key="home_timetable_btn"):
                 st.session_state.page = "📅 Timetable"
                 st.rerun()
                 
@@ -122,7 +147,7 @@ if page == "🏠 Home":
         with st.container():
             st.markdown("### 📚 Resource Vault")
             st.write("Download past papers, notes, and modules uploaded by the class.")
-            if st.button("Open Vault", use_container_width=True):
+            if st.button("Open Vault", use_container_width=True, key="home_vault_btn"):
                 st.session_state.page = "📚 Resource Vault"
                 st.rerun()
                 
@@ -130,13 +155,12 @@ if page == "🏠 Home":
         with st.container():
             st.markdown("### 💬 Class Forum")
             st.write("Ask questions, share answers, and help the squad out.")
-            if st.button("Join Forum", use_container_width=True):
+            if st.button("Join Forum", use_container_width=True, key="home_forum_btn"):
                 st.session_state.page = "💬 Class Forum"
                 st.rerun()
 
     st.divider()
 
-    # Share the App Section
     st.subheader("🔗 Share the App")
     st.write("Send this link to your classmates so they can join the hub!")
     
@@ -147,7 +171,6 @@ if page == "🏠 Home":
         st.code(app_link, language="text")
     with col_btn:
         if st.button("📋 Copy Link"):
-            st.success("Link ready to share!")
             st.toast("Link ready to share!", icon="✅")
 
 # --- TIMETABLE PAGE ---
@@ -189,7 +212,6 @@ elif page == "👥 Class Register":
         st.divider()
 
     conn = get_db_connection()
-    
     total_students = conn.execute('SELECT COUNT(*) FROM students').fetchone()[0]
     st.markdown(f"### 🎓 Total Registered Students: **{total_students}**")
     
