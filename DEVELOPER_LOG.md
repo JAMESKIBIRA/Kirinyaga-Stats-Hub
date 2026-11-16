@@ -1,43 +1,51 @@
-# 📓 The Developer Log: James Kibira Kiruma
+Developer Log: James Kibira Kiruma
 
-**Context:** This log documents the full-stack development journey, academic milestones, and career preparation completed during our sessions.
+Role: Data Analyst & Statistician
+Focus: Full-Stack Development, Statistical Modeling, Data Engineering
+Date: November 2026
 
-## 🎓 1. Academic & Statistical Milestones
-*   **Linear Algebra II CAT Prep:** Reviewed Diagonalization, the Cayley-Hamilton Theorem, and Minimal Polynomials.
-*   **CAT Marathon:** Successfully sat for Linear Algebra II, Epidemiology, and Probability & Statistics II CATs.
-*   **Timetable Mastery:** Formatted the Y2.S1 Timetable (units, venues, lecturers).
+1. Technical Projects
 
-## 📊 2. Data Science & Project Portfolio
-*   **Kenya DHS 2022 Malnutrition Analysis:** Analyzed 19,530 records using R, applied survey weights (17.35% stunting), and built a logistic regression model.
-*   **M-PESA Spending Tracker:** Built a Python/SQL pipeline to extract 3,137 transactions from a password-protected PDF.
-*   **M-PESA Web App:** Deployed a live Streamlit app for CSV uploads and chart generation.
-*   **Personal Portfolio Website:** Built and deployed a live portfolio (james-kiruma.streamlit.app).
+Kirinyaga Stats Hub (Full-Stack Web & Android App)
 
-## 🚀 3. The Kirinyaga Stats Hub (The Masterpiece)
-Built a full-stack web application from scratch for BSc Statistics students.
-*   **Tech Stack:** Python, Streamlit, SQLite, Canva, AppsGeyser.
-*   **Features:** Home dashboard, Timetable, Notice Board, Resource Vault (BLOB file storage), Class Forum (with custom CSS), and Live Chat.
-*   **Security:** Added a secure Admin mode using `st.session_state` (Password protected).
-*   **UI/UX:** Custom CSS for a modern aesthetic.
+· Tech Stack: Python, Streamlit, SQLite, Canva, AppsGeyser.
+· Architecture: Developed a centralized portal for university students. Implemented a relational SQLite database to manage real-time notices, forum Q&A threads, and a resource vault using BLOB data types for file storage.
+· Security: Built an Admin authentication system using st.session_state to restrict data deletion and moderation capabilities.
+· Deployment: Deployed the web app via Streamlit Community Cloud and wrapped it into an installable Android APK.
 
-## 📱 4. Android Deployment
-*   Designed a custom app icon in Canva.
-*   Used AppsGeyser to wrap the Streamlit URL into a native Android APK.
-*   Installed the app on a phone, bypassing security warnings.
+M-PESA Spending Tracker & Web App
 
-## 💼 5. Career & LinkedIn Strategy
-*   Optimized LinkedIn profile, added skills, and set "Open to Work".
-*   Published a technical LinkedIn post detailing the architecture of the Stats Hub.
-*   Built an ATS-friendly resume.
-*   Applied for the Lochmueller Group 2027 Internship.
+· Tech Stack: Python, Pandas, SQLite, Streamlit.
+· Data Pipeline: Engineered a script to extract and clean 3,137 transactions from password-protected PDF statements.
+· Database: Stored cleaned data in a local SQLite database and utilized SQL queries for categorization.
+· Deployment: Deployed a live Streamlit interface allowing users to upload CSVs for automated visualization.
 
-## 🧠 6. Key Technical Lessons Learned
-*   **Streamlit Forms:** Learned to avoid `st.form` bugs in loops.
-*   **Database Caching:** Learned to rename the database (e.g., `stats_hub_v3.db`) to force a schema refresh.
-*   **Data Persistence:** Learned to store files as binary BLOBs in SQLite.
-*   **Admin Auth:** Used `st.session_state` for secure UI toggling.
+Kenya DHS 2022 Malnutrition Analysis
 
-## 📈 7. The Numbers
-*   **5,603+:** Total lines of code written.
-*   **231:** Lines of code in the final Stats Hub.
-*   **1:** Full-stack Android app built and deployed in a weekend.
+· Tech Stack: R, RStudio, Logistic Regression.
+· Analysis: Processed 19,530 records from the KDHS. Applied complex survey weights to determine a stunting prevalence of 17.35%.
+· Modeling: Built a multivariate logistic regression model to identify significant socioeconomic determinants.
+
+Personal Portfolio Website
+
+· Tech Stack: Python, Streamlit.
+· Deployment: Live at james-kiruma.streamlit.app. Integrated project showcases, tech stack display, and a functional contact form.
+
+2. Career & Professional Development
+
+· Resume: Developed an ATS-friendly, 1-page technical resume highlighting data engineering and statistical modeling projects.
+· LinkedIn: Optimized profile with technical headline, project media, and "Open to Work" status (Recruiters only). Published a technical post detailing the Kirinyaga Stats Hub architecture.
+· Applications: Submitted application for the Lochmueller Group 2027 Data Analyst/Consultant Internship.
+
+3. Key Technical Learnings
+
+· Database Caching: Resolved SQLite schema update failures by versioning database files (e.g., stats_hub_v3.db) to force server refreshes.
+· Data Persistence: Implemented file upload storage by converting files to binary bytes and storing them as BLOBs in SQLite.
+· UI/UX: Utilized custom CSS within Streamlit to override default themes and create a modern interface.
+· Session State: Managed user authentication and chat history using Streamlit's st.session_state.
+
+4. Code Metrics
+
+· Total Code Written: 5,603+ lines (Python, R, SQL).
+· Final App Code: 231 lines (Kirinyaga Stats Hub).
+· Deployments: 3 live web applications, 1 Android APK.
