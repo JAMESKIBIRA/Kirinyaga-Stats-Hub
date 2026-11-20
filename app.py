@@ -439,7 +439,7 @@ elif page == "📚 Resource Vault":
     units = [r["unit_code"] for r in q("SELECT DISTINCT unit_code FROM resources ORDER BY unit_code")]
     f1, f2 = st.columns(2)
     unit_filter = f1.selectbox("Unit", ["All units"] + units)
-    text_text_filter = f2.text_input("Search title")
+    text_filter = f2.text_input("Search title")
 
     sql = "SELECT id, unit_code, title, file_name, uploader, uploaded_at FROM resources WHERE 1=1"
     params = []
@@ -460,7 +460,6 @@ elif page == "📚 Resource Vault":
             st.caption(f"Shared by {by}" + (f" on {r['uploaded_at']}" if r["uploaded_at"] else ""))
             a, b = st.columns([2, 1])
             with a:
-                # File data loads only when asked, so the page stays fast on mobile data
                 if st.session_state.get(f"prep_{r['id']}"):
                     blob = q("SELECT file_data FROM resources WHERE id=?", (r["id"],))[0]["file_data"]
                     mime = ("application/pdf" if r["file_name"].lower().endswith(".pdf")
